@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NVIDIA en AWS · Proyecto académico EAN</title>
+<meta name="description" content="Trabajo académico de la Universidad EAN sobre NVIDIA DGX Cloud on AWS. Sitio no oficial, sin afiliación con NVIDIA ni con Amazon Web Services.">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: dark stage like a product hub — hero with drawn wave field, 4 cards that open 4 deep sections, then team + sources. Single dark theme by choice. */
+:root{
+  --bg:#000000;
+  --panel:#141414;
+  --panel-2:#1c1d1a;
+  --line:#2c2e29;
+  --fg:#f4f6f0;
+  --muted:#a9ada2;
+  --green:#76b900;
+  --green-soft:rgba(118,185,0,.14);
+  --steel:#8fb3d9;
+  --steel-soft:rgba(143,179,217,.12);
+  --warn:#f2a33a;
+  --f-display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:#fff}
+a{color:inherit}
+a:focus-visible,button:focus-visible{outline:2px solid var(--green);outline-offset:3px;border-radius:4px}
+.wrap{max-width:1200px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:-.01em}
+p{margin:0}
+.mono{font-family:var(--f-mono)}
+.num{font-variant-numeric:tabular-nums}
+
+/* AVISO ACADÉMICO (franja superior) */
+.notice{background:var(--panel);color:#cfd3c8;font-size:13px;line-height:1.45;border-bottom:1px solid var(--line)}
+.notice .wrap{display:flex;flex-wrap:wrap;justify-content:center;gap:2px 10px;padding-block:8px;text-align:center}
+.notice b{color:#fff;font-weight:600}
+.notice a{color:var(--green);font-weight:600;text-underline-offset:3px}
+.notice .short{display:none}
+@media (max-width:560px){.notice .long{display:none}.notice .short{display:inline}}
+
+/* NAV (barra blanca al estilo de nvidia.com) */
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:#fff;color:#1a1a1a;border-bottom:1px solid #e3e3e3}
+.nav .wrap{display:flex;align-items:center;min-height:50px}
+.brand{display:flex;align-items:center;gap:9px;align-self:stretch;padding-right:16px;border-right:1px solid #e3e3e3;font-family:var(--f-display);font-weight:800;font-size:17px;color:#111;text-decoration:none;white-space:nowrap;flex:none}
+.brand svg{flex:none}
+.nav .section{display:flex;align-items:center;align-self:stretch;padding:0 26px;border-right:1px solid #e3e3e3;font-family:var(--f-display);font-weight:700;font-size:16px;color:#111;white-space:nowrap;flex:none}
+.nav ul{display:flex;gap:32px;list-style:none;margin:0;padding:0 16px 0 28px;min-width:0;overflow-x:auto;scrollbar-width:none}
+.nav ul::-webkit-scrollbar{display:none}
+.nav li a{display:block;padding-block:13px;text-decoration:none;font-weight:500;color:#666;white-space:nowrap;font-size:15px}
+.nav li a:hover{color:#111}
+.nav li a.on{color:#111;font-weight:600}
+.tools{margin-left:auto;display:flex;align-items:center;gap:14px;color:#333;flex:none}
+.tools a,.tools .region{display:flex;align-items:center;justify-content:center;min-width:32px;min-height:32px;color:inherit;text-decoration:none}
+.tools a:hover{color:#000}
+.tools svg{display:block}
+.region{gap:1px;font-size:10px;font-weight:600;letter-spacing:.02em}
+.region span{align-self:flex-end;margin-bottom:4px}
+@media (max-width:1100px){.nav .section{display:none}.nav ul{gap:24px;padding-left:20px}}
+@media (max-width:560px){.tools .region{display:none}.brand{font-size:16px;padding-right:12px}.nav ul{gap:18px;padding:0 10px 0 12px}.tools{gap:2px}}
+
+/* HERO */
+.hero{position:relative;overflow:hidden;background:#000;border-bottom:1px solid #111}
+.hero .wrap{position:relative;z-index:2;padding-block:22px 76px}
+.crumb{font-size:15px;color:#ddd;display:flex;gap:12px;align-items:center}
+.crumb b{color:#fff;font-weight:600}
+.hero h1{font-weight:800;font-size:clamp(34px,4vw,54px);line-height:1.06;margin-top:38px;max-width:14ch}
+.hero .lede{font-size:clamp(17px,1.6vw,21px);line-height:1.5;margin-top:18px;max-width:560px;color:#e9ece4}
+.hero-note{display:inline-flex;align-items:center;gap:10px;max-width:100%;margin-top:26px;padding:7px 12px;border:1px solid #3a3d35;font-family:var(--f-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#cfd3c8}
+.hero-note::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--green)}
+.hero-art{position:absolute;inset:0 0 0 38%;z-index:1;pointer-events:none;-webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 30%);mask-image:linear-gradient(90deg,transparent 0%,#000 30%)}
+.hero-art svg{width:100%;height:100%;display:block}
+.stack-fig{position:absolute;right:max(16px,6%);top:50%;transform:translateY(-46%);width:min(340px,28%);z-index:2;filter:drop-shadow(0 24px 40px rgba(0,0,0,.85))}
+@media (max-width:860px){.hero-art{inset:auto 0 0 0;height:46%;opacity:.55}.stack-fig{display:none}}
+
+/* SECTION HEADS */
+.sec{padding-block:60px 72px}
+.sec-head{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:16px;margin-bottom:36px}
+.sec-head h2{font-size:clamp(28px,2.8vw,36px);font-weight:800}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--green)}
+
+/* CARDS */
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:28px}
+@media (max-width:1040px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.cards{grid-template-columns:1fr}}
+.card{background:var(--panel);display:flex;flex-direction:column;text-decoration:none;min-width:0;transition:transform .25s ease}
+.card:hover{transform:translateY(-4px)}
+.card:hover .go{text-decoration:underline;text-underline-offset:3px}
+.card .art{position:relative;aspect-ratio:16/9;max-width:100%;overflow:hidden;background:#050505}
+.card .art svg{position:absolute;inset:0;width:100%;height:100%}
+.card .body{padding:22px 20px 26px;display:flex;flex-direction:column;gap:12px;flex:1}
+.card .k{font-family:var(--f-mono);font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.card h3{font-size:19px;font-weight:700}
+.card p{color:#d8dbd2;font-size:15px;line-height:1.6}
+.card .go{margin-top:auto;padding-top:8px;font-weight:600;font-size:15px;color:var(--green)}
+
+/* BLOCK SECTIONS */
+.block{border-top:1px solid #151515;padding-block:84px}
+.block:nth-of-type(even){background:#070707}
+.bhead{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:40px;align-items:end;margin-bottom:48px}
+@media (max-width:860px){.bhead{grid-template-columns:1fr;gap:16px}}
+.bhead h2{font-size:clamp(30px,3.6vw,46px);font-weight:800;line-height:1.05;margin-top:12px}
+.bhead p{font-size:18px;color:#d8dbd2;max-width:62ch}
+.bhead .owner{display:inline-block;margin-top:14px;font-size:14px;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
+@media (max-width:1040px){.grid4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:860px){.grid2,.grid3{grid-template-columns:1fr}}
+@media (max-width:560px){.grid4{grid-template-columns:1fr}}
+.panel .chips{margin-top:16px}
+.swot.two>div{min-width:0}
+.panel{background:var(--panel);padding:28px;min-width:0}
+.panel h3{font-size:21px;font-weight:700;margin-bottom:12px}
+.panel p+p{margin-top:12px}
+.panel p,.panel li{color:#d8dbd2}
+.panel ul{margin:0;padding-left:18px;display:grid;gap:8px}
+.sub{font-size:24px;font-weight:700;margin:56px 0 20px}
+.note{font-size:14px;color:var(--muted);margin-top:14px}
+.src{font-size:13px;color:var(--muted)}
+.src a{color:var(--muted)}
+
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;background:var(--line);border:1px solid var(--line)}
+@media (max-width:860px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi{background:var(--bg);padding:24px 22px;min-width:0}
+.block:nth-of-type(even) .kpi{background:#070707}
+.kpi .v{font-family:var(--f-display);font-weight:800;font-size:clamp(30px,3.6vw,44px);line-height:1;color:#fff;font-variant-numeric:tabular-nums}
+.kpi .v em{font-style:normal;color:var(--green)}
+.kpi .l{margin-top:10px;font-size:14px;color:#cfd3c8}
+.kpi .d{margin-top:6px;font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+
+/* BARS */
+.bars{display:grid;gap:16px}
+.bar-row{display:grid;grid-template-columns:150px minmax(0,1fr) 92px;gap:14px;align-items:center}
+@media (max-width:560px){.bar-row{grid-template-columns:1fr 80px}.bar-row .track{grid-column:1/-1;order:3}}
+.bar-row .name{font-size:15px}
+.track{height:14px;background:#22241f;position:relative}
+.fill{position:absolute;inset:0 auto 0 0;background:var(--green)}
+.fill.dim{background:#55594f}
+.range{position:absolute;top:0;bottom:0;background:var(--green);opacity:.95}
+.range.alt{background:var(--steel)}
+.range.dim{background:#7b8072}
+.bar-row .val{text-align:right;font-family:var(--f-mono);font-size:13px;font-variant-numeric:tabular-nums}
+.axis{display:grid;grid-template-columns:150px minmax(0,1fr) 92px;gap:14px;font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.axis div:nth-child(2){display:flex;justify-content:space-between}
+@media (max-width:560px){.axis{display:none}}
+
+/* SWOT */
+.swot{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px;background:var(--line);border:1px solid var(--line)}
+@media (max-width:560px){.swot{grid-template-columns:1fr}}
+.swot>div{background:var(--panel);padding:22px}
+.swot h4{font-size:14px;font-family:var(--f-mono);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px}
+.swot .s h4,.swot .o h4{color:var(--green)}
+.swot .w h4,.swot .t h4{color:var(--warn)}
+.swot ul{margin:0;padding-left:18px;display:grid;gap:6px;color:#d8dbd2;font-size:15px}
+
+/* TABLES */
+.tbl{overflow-x:auto;border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:15px}
+th,td{text-align:left;padding:14px 16px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;background:#0d0d0d}
+tr:last-child td{border-bottom:0}
+td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
+td b{color:#fff}
+
+/* ARCH DIAGRAM */
+.arch{display:grid;grid-template-columns:minmax(0,1fr) 170px;gap:14px}
+@media (max-width:760px){.arch{grid-template-columns:1fr}}
+.layers{display:grid;gap:10px;min-width:0}
+.layer{display:grid;grid-template-columns:150px minmax(0,1fr);gap:14px;align-items:center;border:1px solid var(--line);background:var(--panel);padding:14px 16px}
+@media (max-width:560px){.layer{grid-template-columns:1fr}}
+.layer .ln{font-family:var(--f-display);font-weight:700;font-size:16px}
+.layer .ln small{display:block;font-family:var(--f-mono);font-weight:400;font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-size:14px;padding:7px 12px;border:1px solid;white-space:nowrap}
+.chip.aws{border-color:var(--steel);background:var(--steel-soft);color:#e4eef9}
+.chip.nv{border-color:var(--green);background:var(--green-soft);color:#e9f6d2}
+.secband{border:1px dashed #5d6256;background:#0e0f0c;padding:18px 16px;display:flex;flex-direction:column;gap:10px}
+.secband h4{font-size:16px}
+.secband span{font-size:14px;color:#d8dbd2}
+.legend{display:flex;flex-wrap:wrap;gap:18px;margin-bottom:16px;font-size:14px;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;border:1px solid;margin-right:8px;vertical-align:-1px}
+.legend .a{border-color:var(--steel);background:var(--steel-soft)}
+.legend .n{border-color:var(--green);background:var(--green-soft)}
+
+/* FLOW */
+.flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;counter-reset:f}
+@media (max-width:900px){.flow{grid-template-columns:1fr}}
+.flow li{list-style:none;background:var(--panel);padding:18px;border-top:3px solid var(--green);min-width:0}
+.flow li::before{counter-increment:f;content:"Paso " counter(f);font-family:var(--f-mono);font-size:12px;color:var(--green);display:block;margin-bottom:6px}
+.flow b{display:block;font-family:var(--f-display);font-size:17px;margin-bottom:4px}
+.flow span{font-size:14px;color:#cfd3c8}
+.flow ol{padding:0;margin:0}
+
+/* TIMELINE */
+.tl{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;padding-top:34px}
+.tl::before{content:"";position:absolute;left:0;right:0;top:10px;height:2px;background:#33362f}
+.tl .prog{position:absolute;left:0;right:0;top:10px;height:2px;background:linear-gradient(90deg,var(--green),#a6e22e);transform-origin:left center;transform:scaleX(0);transition:transform 2.4s cubic-bezier(.65,0,.35,1)}
+.tl.go .prog{transform:scaleX(1)}
+.tl .spark{position:absolute;top:5px;left:0;width:60px;height:12px;border-radius:50%;background:radial-gradient(closest-side,rgba(190,255,90,.95),rgba(118,185,0,0));opacity:0;pointer-events:none}
+.tl.go .spark{animation:spark 4.5s linear 2.6s infinite}
+@keyframes spark{0%{left:-60px;opacity:0}10%{opacity:1}90%{opacity:1}100%{left:100%;opacity:0}}
+.tl .st{position:relative;min-width:0;transition:transform .6s ease;transition-delay:calc(var(--i) * .55s + .2s)}
+.tl .st::before{content:"";position:absolute;top:-30px;left:0;width:14px;height:14px;border-radius:50%;background:var(--bg);border:3px solid #55594f;transition:border-color .4s ease,box-shadow .4s ease;transition-delay:inherit}
+.tl.go .st::before{border-color:var(--green);box-shadow:0 0 0 6px rgba(118,185,0,.16)}
+.tl .st::after{content:"";position:absolute;top:-30px;left:0;width:14px;height:14px;border-radius:50%;border:2px solid var(--green);opacity:0;pointer-events:none}
+.tl.go .st::after{animation:ping 2.8s ease-out infinite;animation-delay:calc(var(--i) * .55s + .6s)}
+@keyframes ping{0%{transform:scale(1);opacity:.8}70%{transform:scale(2.8);opacity:0}100%{opacity:0}}
+.tl .when{transition:color .4s ease;transition-delay:inherit}
+.tl:not(.go) .when{color:var(--muted)}
+.tl .st:hover h4{color:var(--green)}
+.hero-art g{animation:drift 16s ease-in-out infinite;transform-box:fill-box}
+@keyframes drift{0%,100%{transform:translate(0,0)}50%{transform:translate(-18px,10px)}}
+.card .art svg.cw{transition:transform .6s ease}
+.card:hover .art svg.cw{transform:scale(1.08) translateX(-6px)}
+.tl .when{font-family:var(--f-mono);font-size:13px;color:var(--green)}
+.tl h4{font-size:19px;margin:6px 0 4px}
+.tl .phase{display:block;font-size:13px;color:var(--muted);margin-bottom:10px}
+.tl ul{margin:0;padding-left:18px;display:grid;gap:6px;font-size:15px;color:#d8dbd2}
+.badge{display:inline-block;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;margin-left:6px;vertical-align:2px;border:1px solid}
+.badge.f{border-color:var(--green);color:var(--green)}
+.badge.p{border-color:var(--warn);color:var(--warn)}
+@media (max-width:900px){.tl{grid-template-columns:1fr;padding-top:0;padding-left:30px}.tl::before,.tl .prog{left:6px;right:auto;top:0;bottom:0;width:2px;height:auto}.tl .prog{background:linear-gradient(180deg,var(--green),#a6e22e);transform-origin:center top;transform:scaleY(0)}.tl.go .prog{transform:scaleY(1)}.tl .spark{display:none}.tl .st::before,.tl .st::after{top:4px;left:-30px}}
+
+/* CALLOUT */
+.callout{border-left:3px solid var(--warn);background:#14110a;padding:22px 24px;margin-top:28px}
+.callout h4{font-size:17px;margin-bottom:8px}
+.callout p{color:#e6e0d2}
+.callout.ok{border-left-color:var(--green);background:var(--green-soft)}
+.callout.ok p{color:#e9ece4}
+.callout.ok h4{color:var(--green)}
+
+/* TEAM / FOOTER */
+.team{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px}
+@media (max-width:900px){.team{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:420px){.team{grid-template-columns:1fr}}
+.member{background:var(--panel);padding:20px;min-width:0}
+.member b{display:block;font-family:var(--f-display);font-size:17px}
+.member span{font-size:14px;color:var(--muted)}
+.member em{display:block;font-style:normal;font-size:13px;color:var(--green);margin-top:8px;font-family:var(--f-mono)}
+.sources{columns:2 320px;column-gap:40px;margin:0;padding-left:18px;font-size:14px;color:var(--muted)}
+.sources li{break-inside:avoid;margin-bottom:8px}
+.sources a{color:#d8dbd2;text-underline-offset:3px}
+.foot{background:var(--panel);border-top:1px solid var(--line);padding-block:48px 28px;font-size:14px;color:var(--muted)}
+.foot-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,2fr);gap:32px}
+@media (max-width:760px){.foot-cols{grid-template-columns:repeat(2,minmax(0,1fr))}.foot-aviso{grid-column:1/-1}}
+.foot h4{font-size:15px;color:#fff;margin-bottom:12px}
+.foot ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.foot a{color:#d8dbd2;text-decoration:none}
+.foot a:hover{color:var(--green)}
+.foot-aviso p{color:#cfd3c8}
+.foot-aviso p+p{margin-top:10px}
+.foot-bottom{display:flex;flex-wrap:wrap;gap:10px 24px;justify-content:space-between;align-items:center;margin-top:40px;padding-top:20px;border-top:1px solid var(--line);font-size:13px}
+.foot-bottom b{color:#fff;font-family:var(--f-display)}
+</style>
+</head>
+<body>
+<div class="notice" role="note"><div class="wrap"><b>Proyecto académico · Universidad EAN.</b><span class="long">Sitio no oficial, con diseño inspirado en nvidia.com solo con fines educativos. Sin afiliación con NVIDIA ni con AWS.</span><span class="short">Sitio no oficial, sin afiliación con NVIDIA ni AWS.</span><a href="#aviso">Leer aviso</a></div></div>
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="#inicio" aria-label="Proyecto AWS, inicio">
+      <svg width="30" height="22" viewBox="0 0 30 22" aria-hidden="true"><path d="M2 20 L10 4 L15 13 L20 4 L28 20" fill="none" stroke="#76b900" stroke-width="3.2" stroke-linejoin="round"/></svg>
+      Proyecto AWS
+    </a>
+    <span class="section">Universidad EAN</span>
+    <ul>
+      <li><a href="#negocio">Negocio</a></li>
+      <li><a href="#producto">Producto</a></li>
+      <li><a href="#tecnologia">Tecnología</a></li>
+      <li><a href="#futuro">Visión 36 meses</a></li>
+      <li><a href="#equipo">Equipo</a></li>
+    </ul>
+    <div class="tools">
+      <a href="#aviso" aria-label="Aviso académico" title="Aviso académico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v6M12 7.6v.01"/></svg></a>
+      <span class="region" role="img" aria-label="Español, Colombia"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M2.5 12h19M12 2.5c2.6 2.7 3.9 5.9 3.9 9.5s-1.3 6.8-3.9 9.5c-2.6-2.7-3.9-5.9-3.9-9.5s1.3-6.8 3.9-9.5z"/></svg><span>CO</span></span>
+      <a href="#equipo" aria-label="Equipo del proyecto" title="Equipo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><circle cx="12" cy="10" r="3.3"/><path d="M6.3 18.5c1.4-2 3.3-3 5.7-3s4.3 1 5.7 3"/></svg></a>
+    </div>
+  </div>
+</header>
+
+<main>
+<section class="hero" id="inicio">
+  <div class="hero-art" aria-hidden="true"><svg id="heroWaves" viewBox="0 0 900 560" preserveAspectRatio="xMidYMid slice"></svg></div>
+  <svg class="stack-fig" viewBox="0 0 360 330" aria-hidden="true">
+    <defs><linearGradient id="gpuG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2b2e27"/><stop offset="1" stop-color="#0c0d0b"/></linearGradient></defs>
+    <g transform="translate(40 30)">
+      <rect x="0" y="0" width="280" height="56" rx="6" fill="url(#gpuG)" stroke="#55594f"/>
+      <rect x="0" y="66" width="280" height="56" rx="6" fill="url(#gpuG)" stroke="#55594f"/>
+      <rect x="0" y="132" width="280" height="56" rx="6" fill="url(#gpuG)" stroke="#76b900" stroke-width="1.5"/>
+      <rect x="0" y="198" width="280" height="56" rx="6" fill="url(#gpuG)" stroke="#55594f"/>
+      <g fill="#76b900"><circle cx="20" cy="28" r="4"/><circle cx="20" cy="94" r="4"/><circle cx="20" cy="160" r="4"/><circle cx="20" cy="226" r="4"/></g>
+      <g stroke="#3d4137" stroke-width="2"><line x1="160" y1="16" x2="160" y2="40"/><line x1="172" y1="16" x2="172" y2="40"/><line x1="184" y1="16" x2="184" y2="40"/><line x1="196" y1="16" x2="196" y2="40"/><line x1="208" y1="16" x2="208" y2="40"/><line x1="220" y1="16" x2="220" y2="40"/><line x1="232" y1="16" x2="232" y2="40"/><line x1="244" y1="16" x2="244" y2="40"/><line x1="256" y1="16" x2="256" y2="40"/></g>
+      <g font-family="JetBrains Mono, monospace" font-size="12" fill="#cfd3c8"><text x="38" y="32">EC2 · GPU</text><text x="38" y="98">EFA · red</text><text x="38" y="164" fill="#e9f6d2">DGX Cloud</text><text x="38" y="230">S3 · FSx</text></g>
+      <text x="0" y="290" font-family="JetBrains Mono, monospace" font-size="11" fill="#8a8e83" letter-spacing="1">PILA DE SERVICIOS · AWS + NVIDIA</text>
+    </g>
+  </svg>
+  <div class="wrap">
+    <nav class="crumb" aria-label="Ruta"><span>Inicio</span><span aria-hidden="true">/</span><b>NVIDIA en la nube</b></nav>
+    <h1>NVIDIA en la nube de AWS</h1>
+    <p class="lede">Cómo la empresa que fabrica las GPUs de la IA usa Amazon Web Services para entrenar modelos, vender su plataforma DGX Cloud y crecer los próximos 36 meses.</p>
+    <p class="hero-note">Proyecto académico · Universidad EAN · Datos a nov. 2026</p>
+  </div>
+</section>
+
+<section class="sec" aria-labelledby="bloques-t">
+  <div class="wrap">
+    <div class="sec-head"><h2 id="bloques-t">Los cuatro bloques</h2></div>
+    <div class="cards">
+      <a class="card" href="#negocio">
+        <div class="art" aria-hidden="true"><svg class="cw" data-seed="1" viewBox="0 0 400 225" preserveAspectRatio="xMidYMid slice"></svg><svg viewBox="0 0 400 225"><g transform="translate(110 52)"><rect x="0" y="92" width="26" height="30" fill="#55594f"/><rect x="40" y="76" width="26" height="46" fill="#55594f"/><rect x="80" y="54" width="26" height="68" fill="#7b8072"/><rect x="120" y="26" width="26" height="96" fill="#76b900"/><rect x="160" y="0" width="26" height="122" fill="#76b900"/><line x1="-8" y1="124" x2="196" y2="124" stroke="#cfd3c8" stroke-width="1.5"/></g></svg></div>
+        <div class="body"><span class="k">Bloque 1</span><h3>Análisis de negocio</h3><p>Contexto de NVIDIA, sus cifras más recientes y su posición frente a AMD y los chips propios de las nubes.</p><span class="go">Ver análisis →</span></div>
+      </a>
+      <a class="card" href="#producto">
+        <div class="art" aria-hidden="true"><svg class="cw" data-seed="2" viewBox="0 0 400 225" preserveAspectRatio="xMidYMid slice"></svg><svg viewBox="0 0 400 225"><g transform="translate(120 40)" fill="none" stroke-width="2"><path d="M30 70 a40 40 0 0 1 70-36 a32 32 0 0 1 60 18 a26 26 0 0 1-6 52 H36 a26 26 0 0 1-6-34z" stroke="#76b900" fill="rgba(118,185,0,.12)"/><rect x="58" y="74" width="72" height="12" stroke="#cfd3c8"/><rect x="58" y="92" width="72" height="12" stroke="#cfd3c8"/><line x1="94" y1="120" x2="94" y2="146" stroke="#cfd3c8"/><circle cx="94" cy="150" r="5" fill="#76b900" stroke="none"/></g></svg></div>
+        <div class="body"><span class="k">Bloque 2</span><h3>Identificación del producto</h3><p>NVIDIA DGX Cloud on AWS: la plataforma administrada para entrenar IA en clústeres de GPUs.</p><span class="go">Ver producto →</span></div>
+      </a>
+      <a class="card" href="#tecnologia">
+        <div class="art" aria-hidden="true"><svg class="cw" data-seed="3" viewBox="0 0 400 225" preserveAspectRatio="xMidYMid slice"></svg><svg viewBox="0 0 400 225"><g transform="translate(110 34)" stroke-width="2"><path d="M90 0 L180 30 L90 60 L0 30z" fill="rgba(118,185,0,.18)" stroke="#76b900"/><path d="M0 62 L90 92 L180 62" fill="none" stroke="#cfd3c8"/><path d="M0 94 L90 124 L180 94" fill="none" stroke="#8a8e83"/><path d="M0 126 L90 156 L180 126" fill="none" stroke="#55594f"/></g></svg></div>
+        <div class="body"><span class="k">Bloque 3</span><h3>Análisis tecnológico</h3><p>La pila de NVIDIA (GPUs, redes y CUDA) y cómo se monta en AWS: EC2, EFA, EKS, S3, FSx y Nitro.</p><span class="go">Ver arquitectura →</span></div>
+      </a>
+      <a class="card" href="#futuro">
+        <div class="art" aria-hidden="true"><svg class="cw" data-seed="4" viewBox="0 0 400 225" preserveAspectRatio="xMidYMid slice"></svg><svg viewBox="0 0 400 225"><g transform="translate(80 60)"><line x1="0" y1="60" x2="240" y2="60" stroke="#55594f" stroke-width="2"/><circle cx="20" cy="60" r="8" fill="#000" stroke="#7b8072" stroke-width="3"/><circle cx="100" cy="60" r="8" fill="#000" stroke="#76b900" stroke-width="3"/><circle cx="180" cy="60" r="8" fill="#000" stroke="#76b900" stroke-width="3"/><path d="M226 46 L246 60 L226 74" fill="none" stroke="#76b900" stroke-width="3"/><g font-family="JetBrains Mono, monospace" font-size="13" fill="#cfd3c8" text-anchor="middle"><text x="20" y="96">2026</text><text x="100" y="96">2027</text><text x="180" y="96">2028</text></g></g></svg></div>
+        <div class="body"><span class="k">Bloque 4</span><h3>Visión a futuro</h3><p>Hacia dónde escala la alianza NVIDIA–AWS entre noviembre de 2026 y noviembre de 2029.</p><span class="go">Ver proyección →</span></div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- BLOQUE 1 -->
+<section class="block" id="negocio">
+  <div class="wrap">
+    <div class="bhead">
+      <div><span class="eyebrow">Bloque 1 · Análisis de negocio</span><h2>Una empresa de chips que hoy vive de los centros de datos</h2></div>
+      <p>NVIDIA nació en 1993 haciendo tarjetas gráficas para videojuegos. Hoy más del 90 % de sus ingresos viene de vender GPUs, redes y sistemas para centros de datos de IA, y sus mayores clientes son justamente las nubes como AWS.</p>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi"><div class="v">US$<em>215,9</em> mil M</div><div class="l">Ingresos del año fiscal 2026</div><div class="d">+65 % vs. FY2025 · feb. 2025–ene. 2026</div></div>
+      <div class="kpi"><div class="v">US$<em>96,2</em> mil M</div><div class="l">Ingresos de un solo trimestre</div><div class="d">Q2 FY2027 (may.–jul. 2026) · +106 %</div></div>
+      <div class="kpi"><div class="v"><em>92,5</em> %</div><div class="l">Peso de Centros de Datos en ese trimestre</div><div class="d">US$89,0 mil M · +117 % anual</div></div>
+      <div class="kpi"><div class="v"><em>75,0</em> %</div><div class="l">Margen bruto</div><div class="d">Q2 FY2027 · GAAP</div></div>
+    </div>
+    <p class="src" style="margin-top:12px">Fuentes: <a href="https://www.barchart.com/story/news/425565/nvidia-announces-financial-results-for-fourth-quarter-and-fiscal-2026" target="_blank" rel="noopener">resultados FY2026</a> · <a href="https://www.earningswhispers.com/epsdetails/NVDA" target="_blank" rel="noopener">resultados Q2 FY2027</a>. "Mil M" = miles de millones de dólares.</p>
+
+    <h3 class="sub">De dónde vienen los ingresos (año fiscal 2026)</h3>
+    <div class="panel">
+      <div class="bars" role="img" aria-label="Centros de datos 193,7 mil millones (89,7 %); Gaming 16,0 (7,4 %); Visualización profesional 3,2 (1,5 %); Automotriz y robótica 2,3 (1,1 %)">
+        <div class="bar-row"><span class="name">Centros de datos</span><div class="track"><div class="fill" style="width:89.7%"></div></div><span class="val">193,7 · 89,7 %</span></div>
+        <div class="bar-row"><span class="name">Gaming</span><div class="track"><div class="fill dim" style="width:7.4%"></div></div><span class="val">16,0 · 7,4 %</span></div>
+        <div class="bar-row"><span class="name">Visualización pro.</span><div class="track"><div class="fill dim" style="width:1.5%"></div></div><span class="val">3,2 · 1,5 %</span></div>
+        <div class="bar-row"><span class="name">Automotriz y robótica</span><div class="track"><div class="fill dim" style="width:1.1%"></div></div><span class="val">2,3 · 1,1 %</span></div>
+        <div class="axis" aria-hidden="true"><div></div><div><span>0 %</span><span>50 %</span><span>100 % del total</span></div><div></div></div>
+      </div>
+      <p class="note">Cifras en miles de millones de US$ sobre un total de 215,9. Más de la mitad de los ingresos de Centros de Datos viene de las grandes nubes (AWS, Azure, Google Cloud, Oracle).</p>
+    </div>
+
+    <h3 class="sub">Posición competitiva: participación estimada en aceleradores de IA, 2026</h3>
+    <div class="panel">
+      <div class="bars" role="img" aria-label="NVIDIA entre 75 y 81 por ciento; AMD entre 5 y 7 por ciento; chips propios de las nubes y otros, el resto">
+        <div class="bar-row"><span class="name">NVIDIA</span><div class="track"><div class="range" style="left:75%;width:6%"></div><div class="fill" style="width:75%;opacity:.35"></div></div><span class="val">75–81 %</span></div>
+        <div class="bar-row"><span class="name">AMD (Instinct)</span><div class="track"><div class="range alt" style="left:5%;width:2%"></div><div class="fill" style="width:5%;background:var(--steel);opacity:.35"></div></div><span class="val">5–7 %</span></div>
+        <div class="bar-row"><span class="name">Chips propios de las nubes</span><div class="track"><div class="range dim" style="left:10%;width:5%"></div><div class="fill dim" style="width:10%;opacity:.4"></div></div><span class="val">10–15 %*</span></div>
+        <div class="axis" aria-hidden="true"><div></div><div><span>0 %</span><span>50 %</span><span>100 %</span></div><div></div></div>
+      </div>
+      <p class="note">El tramo sólido marca el rango de las estimaciones. No existe una cifra auditada: Silicon Analysts proyecta cerca de 75 %, IDC 81 % y Morgan Stanley ~85 % (mar. 2026). *Trainium de AWS, TPU de Google y diseños de Broadcom: Morgan Stanley los ubica por encima del 10 % y Silicon Analysts proyecta 10–15 %. <a class="src" href="https://siliconanalysts.com/analysis/nvidia-ai-accelerator-market-share-2024-2026" target="_blank" rel="noopener">Silicon Analysts</a> · <a class="src" href="https://aimultiple.com/ai-chip-makers" target="_blank" rel="noopener">AIMultiple</a></p>
+    </div>
+
+    <h3 class="sub">Mercado objetivo y competencia</h3>
+    <div class="grid3">
+      <div class="panel"><h3>A quién le vende</h3><ul><li>Servicios en la nube: AWS, Microsoft Azure y Google Cloud.</li><li>Empresas de inteligencia artificial y centros de investigación.</li><li>Videojuegos, robótica e industria automotriz.</li></ul></div>
+      <div class="panel"><h3>Contra quién compite</h3><ul><li>AMD, con sus GPUs Instinct.</li><li>Intel, con sus aceleradores Gaudi.</li><li>Google, con sus chips TPU.</li><li>Amazon, con sus chips Trainium.</li></ul><p style="margin-top:14px"><b style="color:#fff">Su ventaja:</b> combina procesadores de alto rendimiento con CUDA y un ecosistema de software especializado.</p></div>
+      <div class="panel"><h3>AWS: socio y rival a la vez</h3><p>AWS usa GPUs de NVIDIA para ofrecer servicios de IA en la nube, y anunció 2 millones de GPUs adicionales para 2027 y 2028. Al mismo tiempo diseña sus propios chips Trainium, así que la relación mezcla colaboración y competencia.</p></div>
+    </div>
+    <p class="src" style="margin-top:12px">Fuentes: <a href="https://aimultiple.com/ai-chip-makers" target="_blank" rel="noopener">AIMultiple</a> · <a href="https://techcrunch.com/2026/08/26/amazon-just-tripled-its-order-of-nvidia-chips-over-surging-demand/" target="_blank" rel="noopener">TechCrunch, 26 ago. 2026</a> · <a href="https://aws.amazon.com/ai/machine-learning/trainium/" target="_blank" rel="noopener">AWS – Trainium</a></p>
+
+    <h3 class="sub">FODA</h3>
+    <div class="swot">
+      <div class="s"><h4>Fortalezas</h4><ul><li>CUDA: el estándar de software que usan casi todos los desarrolladores de IA.</li><li>Pila completa: GPU, CPU Grace/Vera, redes NVLink y software.</li><li>Lanza una arquitectura nueva cada año (Blackwell, Rubin, Feynman).</li></ul></div>
+      <div class="w"><h4>Debilidades</h4><ul><li>Depende de pocos clientes: las nubes compran más de la mitad de su producto de centros de datos.</li><li>Fabricación concentrada en TSMC.</li><li>DGX Cloud como servicio directo perdió terreno cuando las nubes bajaron el precio de alquilar GPUs.</li></ul></div>
+      <div class="o"><h4>Oportunidades</h4><ul><li>IA agéntica e inferencia, que crecen más rápido que el entrenamiento.</li><li>IA física: robots y vehículos autónomos.</li><li>Nubes soberanas y gobiernos (100.000 GPUs para el gobierno de EE. UU. en AWS).</li></ul></div>
+      <div class="t"><h4>Amenazas</h4><ul><li>Chips propios de sus clientes: Trainium de AWS, TPU de Google.</li><li>Controles de exportación: su pronóstico no incluye ventas de centros de datos en China.</li><li>AMD MI450 compitiendo por precio en inferencia.</li></ul></div>
+    </div>
+
+    <div class="callout ok">
+      <h4>Conclusión del análisis de negocio</h4>
+      <p>NVIDIA tiene una posición competitiva sólida gracias a su innovación, su tecnología especializada y sus alianzas estratégicas. Su principal desafío es mantener ese liderazgo frente a nuevos competidores, incluidos los chips que diseñan sus propios clientes.</p>
+    </div>
+  </div>
+</section>
+
+<!-- BLOQUE 2 -->
+<section class="block" id="producto">
+  <div class="wrap">
+    <div class="bhead">
+      <div><span class="eyebrow">Bloque 2 · Identificación del producto</span><h2>NVIDIA DGX Cloud on AWS</h2></div>
+      <p>Una "fábrica de IA" alquilada: NVIDIA entrega clústeres de GPUs listos para entrenar o ajustar modelos, administrados por sus propios ingenieros, pero construidos y facturados dentro de AWS. Se anunció en re:Invent 2023 y llegó a AWS Marketplace en diciembre de 2024.</p>
+    </div>
+
+    <div class="grid3">
+      <div class="panel"><h3>Qué problema resuelve</h3><p>Entrenar un modelo grande exige cientos de GPUs conectadas, software afinado y expertos. Comprar ese hardware tarda meses. DGX Cloud acorta el "tiempo hasta el primer entrenamiento": el cliente recibe el clúster listo y paga por períodos cortos.</p></div>
+      <div class="panel"><h3>Para quién es</h3><p>Empresas y startups que entrenan o ajustan sus propios modelos de lenguaje, visión o biología, y que ya trabajan en AWS. Un cliente temprano fue Leonardo.ai, de la familia Canva, para crear herramientas de diseño.</p></div>
+      <div class="panel"><h3>Cómo se compra</h3><p>Por AWS Marketplace con ofertas privadas. El cliente puede pagarlo con el gasto que ya tiene comprometido con AWS, sin abrir otro contrato ni otro proveedor.</p></div>
+    </div>
+
+    <h3 class="sub">Qué incluye</h3>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Característica</th><th>Detalle</th></tr></thead>
+        <tbody>
+          <tr><td><b>Disponibilidad</b></td><td class="n">99,99 % de infraestructura, con actualizaciones en vivo gracias a AWS Nitro</td></tr>
+          <tr><td><b>Uso de GPU</b></td><td class="n">Los clientes ven en promedio 86 % a 100 % de uso de sus GPUs</td></tr>
+          <tr><td><b>Hardware</b></td><td>GPUs Hopper (H100) en instancias EC2 P5; Blackwell (GB200) y GB300 en camino</td></tr>
+          <tr><td><b>Software</b></td><td>NVIDIA AI Enterprise, NeMo y Run:ai incluidos y preconfigurados</td></tr>
+          <tr><td><b>Soporte</b></td><td>Gerente técnico de cuenta (TAM) de NVIDIA y soporte 24/7</td></tr>
+          <tr><td><b>Después de entrenar</b></td><td>El modelo se despliega en Amazon Bedrock, SageMaker AI o EKS, o con microservicios NVIDIA NIM</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="src" style="margin-top:12px">Fuente: <a href="https://aws.amazon.com/nvidia/dgx-cloud" target="_blank" rel="noopener">AWS – NVIDIA DGX Cloud on AWS</a> · <a href="https://blogs.nvidia.com/blog/aws-reinvent-ai-robotics-quantum-software/" target="_blank" rel="noopener">NVIDIA Blog</a></p>
+
+    <div class="callout">
+      <h4>Estado actual del producto</h4>
+      <p>Desde 2025 NVIDIA usa DGX Cloud sobre todo como su nube interna: allí entrena sus modelos Nemotron, Isaac GR00T (robots humanoides), Cosmos y Alpamayo (vehículos autónomos). Sigue ofreciendo DGX Cloud with AWS a clientes por oferta privada, y lanzó DGX Cloud Lepton, un mercado de GPUs al que AWS se sumó en junio de 2025. Para nuestro análisis esto refuerza el caso: NVIDIA confía en esta arquitectura sobre AWS para construir sus propios productos.</p>
+      <p class="src" style="margin-top:10px"><a href="https://www.nvidia.com/en-us/data-center/dgx-cloud/" target="_blank" rel="noopener">NVIDIA – DGX Cloud</a> · <a href="https://www.tomshardware.com/tech-industry/nvidia-steps-back-from-dgx-cloud" target="_blank" rel="noopener">Tom's Hardware, sep. 2025</a></p>
+    </div>
+  </div>
+</section>
+
+<!-- BLOQUE 3 -->
+<section class="block" id="tecnologia">
+  <div class="wrap">
+    <div class="bhead">
+      <div><span class="eyebrow">Bloque 3 · Análisis tecnológico</span><h2>El producto es de NVIDIA; cada capa debajo es AWS</h2></div>
+      <p>DGX Cloud fue diseñado en conjunto por las dos empresas. Corre sobre servidores EC2 con GPUs, se orquesta con Amazon EKS y Run:ai, guarda datos en FSx for Lustre y S3, y queda aislado por el AWS Nitro System.</p>
+    </div>
+
+    <h3 class="sub" style="margin-top:0">La pila tecnológica de NVIDIA</h3>
+    <div class="grid4">
+      <div class="panel"><h3>Hardware</h3><p>Los chips y equipos que hacen el cálculo.</p><div class="chips"><span class="chip nv">GPU Hopper</span><span class="chip nv">GPU Blackwell</span><span class="chip nv">Sistemas DGX</span></div></div>
+      <div class="panel"><h3>Redes</h3><p>Unen miles de GPUs para que trabajen como una sola máquina.</p><div class="chips"><span class="chip nv">NVLink</span><span class="chip nv">InfiniBand</span><span class="chip nv">Spectrum-X</span></div></div>
+      <div class="panel"><h3>Software</h3><p>CUDA programa la GPU, cuDNN acelera las redes neuronales y TensorRT optimiza la inferencia.</p><div class="chips"><span class="chip nv">CUDA</span><span class="chip nv">cuDNN</span><span class="chip nv">TensorRT</span></div></div>
+      <div class="panel"><h3>Plataformas</h3><p>Productos listos para empresas, simulación 3D y robótica.</p><div class="chips"><span class="chip nv">AI Enterprise</span><span class="chip nv">Omniverse</span><span class="chip nv">Isaac</span></div></div>
+    </div>
+    <p class="src" style="margin-top:12px">Fuentes: <a href="https://www.nvidia.com/en-us/data-center/dgx-platform/" target="_blank" rel="noopener">NVIDIA DGX</a> · <a href="https://www.nvidia.com/en-us/data-center/nvlink/" target="_blank" rel="noopener">NVLink</a> · <a href="https://www.nvidia.com/en-us/networking/products/infiniband/" target="_blank" rel="noopener">InfiniBand</a> · <a href="https://www.nvidia.com/en-us/networking/spectrumx/" target="_blank" rel="noopener">Spectrum-X</a> · <a href="https://developer.nvidia.com/cuda-toolkit" target="_blank" rel="noopener">CUDA</a> · <a href="https://developer.nvidia.com/cudnn" target="_blank" rel="noopener">cuDNN</a> · <a href="https://developer.nvidia.com/tensorrt" target="_blank" rel="noopener">TensorRT</a> · <a href="https://www.nvidia.com/en-us/data-center/products/ai-enterprise/" target="_blank" rel="noopener">AI Enterprise</a> · <a href="https://www.nvidia.com/en-us/omniverse/" target="_blank" rel="noopener">Omniverse</a> · <a href="https://developer.nvidia.com/isaac" target="_blank" rel="noopener">Isaac</a></p>
+
+    <h3 class="sub">Cómo se monta DGX Cloud sobre AWS</h3>
+    <div class="legend"><span><i class="a"></i>Servicio de AWS</span><span><i class="n"></i>Componente de NVIDIA</span></div>
+    <div class="arch" role="img" aria-label="Arquitectura por capas de DGX Cloud on AWS">
+      <div class="layers">
+        <div class="layer"><div class="ln">Cliente<small>Entrada</small></div><div class="chips"><span class="chip aws">Cuenta AWS del cliente</span><span class="chip aws">AWS Marketplace</span></div></div>
+        <div class="layer"><div class="ln">Conexión privada<small>Sin internet público</small></div><div class="chips"><span class="chip aws">AWS PrivateLink</span><span class="chip aws">AWS Transit Gateway</span><span class="chip aws">Route 53 privado</span></div></div>
+        <div class="layer"><div class="ln">Orquestación<small>Quién usa qué GPU</small></div><div class="chips"><span class="chip aws">Amazon EKS</span><span class="chip nv">NVIDIA Run:ai</span><span class="chip nv">NeMo · AI Enterprise</span></div></div>
+        <div class="layer"><div class="ln">Cómputo<small>Servidores</small></div><div class="chips"><span class="chip aws">Amazon EC2 P5 / P6 / P6e</span><span class="chip nv">GPUs H100 y Blackwell</span></div></div>
+        <div class="layer"><div class="ln">Red<small>Entre GPUs</small></div><div class="chips"><span class="chip aws">Elastic Fabric Adapter</span><span class="chip aws">EC2 UltraClusters</span><span class="chip nv">NVLink</span></div></div>
+        <div class="layer"><div class="ln">Almacenamiento<small>Datos</small></div><div class="chips"><span class="chip aws">Amazon FSx for Lustre</span><span class="chip aws">Amazon S3</span></div></div>
+        <div class="layer"><div class="ln">Despliegue<small>Salida</small></div><div class="chips"><span class="chip aws">Amazon Bedrock</span><span class="chip aws">SageMaker AI</span><span class="chip nv">NVIDIA NIM</span></div></div>
+      </div>
+      <div class="secband"><h4>Seguridad en cada capa</h4><span>AWS Nitro System</span><span>AWS KMS (llaves del cliente)</span><span>AWS IAM</span><span>Clúster de un solo cliente</span></div>
+    </div>
+    <div class="callout ok">
+      <h4>Idea clave</h4>
+      <p>NVIDIA aporta la GPU y el software; AWS aporta la escala elástica y los servicios gestionados: cómputo en EC2, red EFA, datos en S3 y FSx for Lustre, y servicios como EKS y SageMaker. Sobre esa base corren modelos de IA, simulación y análisis.</p>
+    </div>
+
+    <h3 class="sub">Cómputo: las instancias EC2 que usa</h3>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Instancia EC2</th><th>GPUs</th><th>Memoria GPU</th><th>Red</th><th>Papel</th></tr></thead>
+        <tbody>
+          <tr><td><b>p5.48xlarge</b></td><td>8 × H100</td><td class="n">—</td><td class="n">3,2 Tbps</td><td>Base documentada de DGX Cloud; 8 discos NVMe de 3,84 TB</td></tr>
+          <tr><td><b>p6-b200.48xlarge</b></td><td>8 × Blackwell</td><td class="n">1.432 GB</td><td class="n">3,2 Tbps</td><td>Hasta 2× el rendimiento de P5en</td></tr>
+          <tr><td><b>p6-b300.48xlarge</b></td><td>8 × Blackwell Ultra</td><td class="n">2.144 GB</td><td class="n">6,4 Tbps</td><td>Entrenamiento distribuido a gran escala</td></tr>
+          <tr><td><b>UltraServer P6e-GB200</b></td><td>72 × Blackwell</td><td class="n">13.320 GB</td><td class="n">28,8 Tbps</td><td>72 GPUs unidas por NVLink como una sola máquina</td></tr>
+          <tr><td><b>UltraServer P6e-GB300</b></td><td>72 × Blackwell Ultra</td><td class="n">≈ 20 TB</td><td class="n">—</td><td>Disponible desde el 2 dic. 2025; 1,5× memoria vs. GB200</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="src" style="margin-top:12px">Fuentes: <a href="https://aws.amazon.com/ec2/instance-types/p6/" target="_blank" rel="noopener">AWS – Instancias P6</a> · <a href="https://aws.amazon.com/blogs/machine-learning/supercharge-generative-ai-workflows-with-nvidia-dgx-cloud-on-aws-and-amazon-bedrock-custom-model-import/" target="_blank" rel="noopener">AWS Blog, jul. 2025</a></p>
+
+    <div class="grid3" style="margin-top:28px">
+      <div class="panel"><h3>Red: EFA y NVLink</h3><p>Dentro del servidor, NVLink conecta las GPUs (hasta 130 TB/s en un UltraServer). Entre servidores, Elastic Fabric Adapter da 400 Gbps por GPU con el protocolo SRD, que reparte el tráfico por varias rutas. Los UltraClusters escalan a decenas de miles de GPUs.</p></div>
+      <div class="panel"><h3>Orquestación: EKS + Run:ai</h3><p>Amazon EKS crea el clúster de Kubernetes. Run:ai reparte las GPUs por departamentos y proyectos, prioriza y libera trabajos. EFA viene preconfigurado para GPUDirect RDMA, NCCL y MPI.</p></div>
+      <div class="panel"><h3>Seguridad: Nitro y conexión privada</h3><p>Nitro impide que nadie, ni siquiera personal de AWS, acceda a los datos. Cada cliente tiene su clúster dedicado y se conecta por PrivateLink o Transit Gateway. Las llaves de cifrado viven en AWS KMS.</p></div>
+    </div>
+
+    <h3 class="sub">El recorrido de los datos</h3>
+    <ol class="flow">
+      <li><b>Amazon S3</b><span>El cliente monta su bucket con los datos de entrenamiento.</span></li>
+      <li><b>FSx for Lustre</b><span>Datos y modelo base pasan al almacenamiento compartido del clúster.</span></li>
+      <li><b>GPUs en EC2</b><span>Se entrena: en el ejemplo de AWS, Llama 3.1 70B en 4 instancias P5 (32 GPUs).</span></li>
+      <li><b>Amazon S3</b><span>El modelo terminado vuelve al bucket del cliente.</span></li>
+      <li><b>Amazon Bedrock</b><span>Se importa y se usa en producción sin administrar servidores.</span></li>
+    </ol>
+
+    <h3 class="sub">Prueba de confianza: Project Ceiba</h3>
+    <div class="kpis">
+      <div class="kpi"><div class="v"><em>20.736</em></div><div class="l">GPUs Blackwell (GB200), ya con GB300</div><div class="d">+ 10.368 CPUs Grace</div></div>
+      <div class="kpi"><div class="v"><em>414</em> EF</div><div class="l">Exaflops de IA</div><div class="d">≈ 375× la supercomputadora Frontier</div></div>
+      <div class="kpi"><div class="v"><em>1.600</em> Gbps</div><div class="l">Red EFA por superchip</div><div class="d">Primer sistema con EFA de 4.ª gen.</div></div>
+      <div class="kpi"><div class="v"><em>100</em> % AWS</div><div class="l">Alojada solo en AWS</div><div class="d">Para la I+D de la propia NVIDIA</div></div>
+    </div>
+    <p class="note">Supercomputadora que AWS construyó para NVIDIA sobre la arquitectura DGX Cloud, con enfriamiento líquido. NVIDIA la usa para modelos de lenguaje, video y 3D, biología digital, robótica, vehículos autónomos y clima. <a class="src" href="https://aws.amazon.com/nvidia/project-ceiba" target="_blank" rel="noopener">AWS – Project Ceiba</a></p>
+
+    <h3 class="sub">Integración con AWS: ventajas y desafíos</h3>
+    <div class="swot two">
+      <div class="s"><h4>Ventajas</h4><ul><li>Escalabilidad elástica: se suman o liberan GPUs según la demanda.</li><li>Pago por uso o por períodos cortos, sin comprar hardware.</li><li>Ecosistema CUDA listo para usar: el mismo código funciona en la nube.</li></ul></div>
+      <div class="t"><h4>Desafíos</h4><ul><li>Costo: las instancias con GPU están entre las más caras de EC2.</li><li>Consumo energético de los centros de datos, que exige más energía y enfriamiento líquido.</li><li>Competencia de AMD y de los chips propios de AWS, como Trainium.</li></ul></div>
+    </div>
+    <p class="src" style="margin-top:12px">Fuentes: <a href="https://aws.amazon.com/ec2/pricing/on-demand/" target="_blank" rel="noopener">AWS – Precios de EC2 bajo demanda</a> · <a href="https://aws.amazon.com/ai/machine-learning/trainium/" target="_blank" rel="noopener">AWS – Trainium</a></p>
+    <div class="callout ok">
+      <h4>Conclusión del análisis tecnológico</h4>
+      <p>NVIDIA y AWS integran hardware, software y nube en una sola cadena de valor para la inteligencia artificial: NVIDIA diseña la GPU y su software, y AWS la convierte en un servicio elástico que cualquier empresa puede alquilar.</p>
+    </div>
+  </div>
+</section>
+
+<!-- BLOQUE 4 -->
+<section class="block" id="futuro">
+  <div class="wrap">
+    <div class="bhead">
+      <div><span class="eyebrow">Bloque 4 · Visión a futuro</span><h2>36 meses: de un millón a más de tres millones de GPUs en AWS</h2></div>
+      <p>Horizonte de noviembre de 2026 a noviembre de 2029. Nuestra visión: NVIDIA consolida su lugar en el mercado de la IA y expande su infraestructura en tres fases: expansión de GPUs (2027), escalabilidad y eficiencia (2028) y robótica e IA física (2029). Separamos lo que ya anunciaron las empresas de nuestra proyección como grupo.</p>
+    </div>
+
+    <div class="tl" id="timeline">
+      <div class="prog" aria-hidden="true"></div><div class="spark" aria-hidden="true"></div>
+      <div class="st" style="--i:0"><span class="when">Nov. 2026 – 2027</span><h4>Consolidar Blackwell y Rubin</h4><span class="phase">Fase 1 · Expansión de GPU e infraestructura</span><ul><li>Vera Rubin en producción completa <span class="badge f">Anunciado</span></li><li>AWS despliega más de 1 millón de GPUs NVIDIA desde 2026 <span class="badge f">Anunciado</span></li><li>DGX Cloud pasa de H100 a GB200/GB300 en AWS <span class="badge p">Proyección</span></li></ul></div>
+      <div class="st" style="--i:1"><span class="when">2027</span><h4>Rubin Ultra y CPUs Vera</h4><span class="phase">Fase 1 · Expansión de GPU e infraestructura</span><ul><li>Rubin Ultra en el segundo semestre <span class="badge f">Anunciado</span></li><li>CPUs Vera y NVLink Fusion en infraestructura AWS <span class="badge f">Anunciado</span></li><li>Instancias EC2 con Rubin como base de DGX Cloud <span class="badge p">Proyección</span></li></ul></div>
+      <div class="st" style="--i:2"><span class="when">2027 – 2028</span><h4>2 millones de GPUs más</h4><span class="phase">Fase 2 · Escalabilidad y eficiencia</span><ul><li>AWS suma 2 millones de GPUs Blackwell Ultra, Rubin y Rubin Ultra <span class="badge f">Anunciado</span></li><li>100.000 GPUs para cargas del gobierno de EE. UU. <span class="badge f">Anunciado</span></li><li>Amazon Robotics usa la pila de IA física de NVIDIA <span class="badge f">Anunciado</span></li></ul></div>
+      <div class="st" style="--i:3"><span class="when">2028 – nov. 2029</span><h4>Generación Feynman</h4><span class="phase">Fase 3 · Robótica, automatización e IA física</span><ul><li>Arquitectura Feynman con apilado 3D y memoria HBM a medida <span class="badge f">Anunciado</span></li><li>IA física e inferencia agéntica como principal uso en AWS <span class="badge p">Proyección</span></li><li>DGX Cloud queda como laboratorio interno y Lepton como canal externo <span class="badge p">Proyección</span></li></ul></div>
+    </div>
+    <p class="src" style="margin-top:18px">Fuentes: <a href="https://aws.amazon.com/blogs/machine-learning/aws-and-nvidia-deepen-strategic-collaboration-to-accelerate-ai-from-pilot-to-production" target="_blank" rel="noopener">AWS Blog, GTC mar. 2026</a> · <a href="https://techcrunch.com/2026/08/26/amazon-just-tripled-its-order-of-nvidia-chips-over-surging-demand/" target="_blank" rel="noopener">TechCrunch, 26 ago. 2026</a> · <a href="https://analyticsindiamag.com/ai-news/amazon-to-deploy-2-mn-nvidia-gpus-for-ai-data-centres" target="_blank" rel="noopener">AIM</a> · <a href="https://www.tweaktown.com/news/110521/nvidia-updates-roadmap-with-new-details-on-its-next-gen-gpu-feynman-coming-in-2028/index.html" target="_blank" rel="noopener">TweakTown, hoja de ruta GTC 2026</a></p>
+
+    <div class="grid3" style="margin-top:36px">
+      <div class="panel"><h3>Escalabilidad</h3><p>La arquitectura ya está preparada para crecer sin rediseñarse: las mismas capas (EC2, EFA, Nitro, EKS) soportan cada nueva generación de GPU. Lo que cambia es la instancia de abajo, de P5 con 8 GPUs a UltraServers de 72 y luego racks Rubin Ultra.</p></div>
+      <div class="panel"><h3>Adopción tecnológica</h3><p>El uso pasa del entrenamiento a la inferencia y a los agentes de IA. Por eso AWS integra los modelos Nemotron en Bedrock y SageMaker, y la librería NIXL de NVIDIA en EFA para servir modelos más rápido.</p><p>La IA también se extiende a salud, finanzas, educación e industria, y a la robótica: NVIDIA entrena y simula robots con Isaac y Omniverse, y los hace funcionar dentro del propio robot con los módulos Jetson.</p></div>
+      <div class="panel"><h3>Estrategia</h3><p>NVIDIA deja de competir con las nubes y se vuelve su socio: vende chips, redes y CPUs a AWS, usa DGX Cloud para su propia I+D y conecta desarrolladores con capacidad de AWS a través de Lepton. La directora financiera espera un crecimiento cercano al 70 % en el año fiscal 2028.</p></div>
+    </div>
+
+    <h3 class="sub">Riesgos a vigilar</h3>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Riesgo</th><th>Por qué importa</th><th>Señal a seguir</th></tr></thead>
+        <tbody>
+          <tr><td><b>Trainium de AWS</b></td><td>AWS fabrica chips propios y está en conversaciones para venderlos a terceros</td><td>Cuánta capacidad nueva de AWS es Trainium vs. NVIDIA</td></tr>
+          <tr><td><b>China</b></td><td>El pronóstico de NVIDIA no incluye ventas de centros de datos en China</td><td>Cambios en controles de exportación</td></tr>
+          <tr><td><b>Energía y suministro</b></td><td>Racks más densos exigen enfriamiento líquido y más megavatios</td><td>Plazos de entrega de Rubin Ultra</td></tr>
+          <tr><td><b>Costos de infraestructura</b></td><td>Alquilar GPUs en la nube es caro y los clientes comparan precios con Trainium y AMD</td><td>Precio por hora de las instancias con GPU en AWS</td></tr>
+          <tr><td><b>Concentración</b></td><td>Pocas nubes y laboratorios compran la mayor parte</td><td>Peso de las nubes en los ingresos de Centros de Datos</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="src" style="margin-top:12px">Fuentes: <a href="https://developer.nvidia.com/isaac" target="_blank" rel="noopener">NVIDIA Isaac</a> · <a href="https://www.nvidia.com/en-us/omniverse/" target="_blank" rel="noopener">NVIDIA Omniverse</a> · <a href="https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/" target="_blank" rel="noopener">NVIDIA Jetson</a> · <a href="https://aws.amazon.com/ec2/pricing/on-demand/" target="_blank" rel="noopener">AWS – Precios de EC2</a></p>
+
+    <div class="callout ok">
+      <h4>Conclusión de la visión a futuro</h4>
+      <p>NVIDIA busca consolidarse como un actor fundamental en la infraestructura global de inteligencia artificial. Con AWS como socio para escalar, con 2 millones de GPUs adicionales anunciadas para 2027 y 2028, tiene grandes oportunidades de crecer en empresas de todos los sectores; el reto será controlar los costos, el consumo energético y la competencia.</p>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="equipo" style="border-top:1px solid #151515">
+  <div class="wrap">
+    <div class="sec-head"><h2>Equipo</h2><span class="eyebrow">Universidad EAN</span></div>
+    <div class="team">
+      <div class="member"><b>Giancarlo Rocha</b><span>Ingeniería de Sistemas</span></div>
+      <div class="member"><b>Luisa Parra</b><span>Ingeniería de Sistemas</span></div>
+      <div class="member"><b>Sebastián Potes</b><span>Mercadeo</span></div>
+      <div class="member"><b>Juan David Moreno</b><span>Mercadeo</span></div>
+      <div class="member"><b>Daniel Villanueva</b><span>Ingeniería Mecatrónica</span></div>
+    </div>
+
+    <h3 class="sub" id="fuentes">Fuentes</h3>
+    <ul class="sources">
+      <li><a href="https://www.barchart.com/story/news/425565/nvidia-announces-financial-results-for-fourth-quarter-and-fiscal-2026" target="_blank" rel="noopener">NVIDIA – Resultados Q4 y año fiscal 2026</a></li>
+      <li><a href="https://www.earningswhispers.com/epsdetails/NVDA" target="_blank" rel="noopener">NVIDIA – Resultados Q2 año fiscal 2027</a></li>
+      <li><a href="https://yourstory.com/ai-story/nvidia-jensen-huang-compute-equals-revenues-ai-drives-strong-fiscal" target="_blank" rel="noopener">YourStory – Peso de las nubes en Centros de Datos</a></li>
+      <li><a href="https://www.outlookbusiness.com/corporate/nvidia-quarter-results-revenue-profits-data-centre-chips-jensen-huang-ai-investment-risk" target="_blank" rel="noopener">Outlook Business – Expectativa FY2028</a></li>
+      <li><a href="https://siliconanalysts.com/analysis/nvidia-ai-accelerator-market-share-2024-2026" target="_blank" rel="noopener">Silicon Analysts – Participación de mercado</a></li>
+      <li><a href="https://aimultiple.com/ai-chip-makers" target="_blank" rel="noopener">AIMultiple – Fabricantes de chips de IA</a></li>
+      <li><a href="https://aws.amazon.com/nvidia/dgx-cloud" target="_blank" rel="noopener">AWS – NVIDIA DGX Cloud on AWS</a></li>
+      <li><a href="https://aws.amazon.com/blogs/machine-learning/supercharge-generative-ai-workflows-with-nvidia-dgx-cloud-on-aws-and-amazon-bedrock-custom-model-import/" target="_blank" rel="noopener">AWS Blog – Arquitectura de DGX Cloud on AWS</a></li>
+      <li><a href="https://aws.amazon.com/ec2/instance-types/p6/" target="_blank" rel="noopener">AWS – Instancias EC2 P6</a></li>
+      <li><a href="https://aws.amazon.com/nvidia/project-ceiba" target="_blank" rel="noopener">AWS – Project Ceiba</a></li>
+      <li><a href="https://docs.nvidia.com/dgx-cloud/run-ai/latest/appendix-aws.html" target="_blank" rel="noopener">NVIDIA Docs – Run:ai en AWS</a></li>
+      <li><a href="https://www.nvidia.com/en-us/data-center/dgx-cloud/" target="_blank" rel="noopener">NVIDIA – DGX Cloud</a></li>
+      <li><a href="https://www.tomshardware.com/tech-industry/nvidia-steps-back-from-dgx-cloud" target="_blank" rel="noopener">Tom's Hardware – Cambio de estrategia de DGX Cloud</a></li>
+      <li><a href="https://blogs.nvidia.com/blog/aws-reinvent-ai-robotics-quantum-software/" target="_blank" rel="noopener">NVIDIA Blog – DGX Cloud llega a AWS</a></li>
+      <li><a href="https://aws.amazon.com/blogs/machine-learning/aws-and-nvidia-deepen-strategic-collaboration-to-accelerate-ai-from-pilot-to-production" target="_blank" rel="noopener">AWS Blog – Anuncios GTC 2026</a></li>
+      <li><a href="https://techcrunch.com/2026/08/26/amazon-just-tripled-its-order-of-nvidia-chips-over-surging-demand/" target="_blank" rel="noopener">TechCrunch – AWS suma 2 millones de GPUs</a></li>
+      <li><a href="https://analyticsindiamag.com/ai-news/amazon-to-deploy-2-mn-nvidia-gpus-for-ai-data-centres" target="_blank" rel="noopener">AIM – Detalles del acuerdo AWS–NVIDIA</a></li>
+      <li><a href="https://www.tweaktown.com/news/110521/nvidia-updates-roadmap-with-new-details-on-its-next-gen-gpu-feynman-coming-in-2028/index.html" target="_blank" rel="noopener">TweakTown – Hoja de ruta hasta Feynman</a></li>
+      <li><a href="https://www.nvidia.com/en-us/data-center/dgx-platform/" target="_blank" rel="noopener">NVIDIA – Plataforma DGX</a></li>
+      <li><a href="https://www.nvidia.com/en-us/data-center/nvlink/" target="_blank" rel="noopener">NVIDIA – NVLink</a></li>
+      <li><a href="https://www.nvidia.com/en-us/networking/products/infiniband/" target="_blank" rel="noopener">NVIDIA – InfiniBand</a></li>
+      <li><a href="https://www.nvidia.com/en-us/networking/spectrumx/" target="_blank" rel="noopener">NVIDIA – Spectrum-X</a></li>
+      <li><a href="https://developer.nvidia.com/cuda-toolkit" target="_blank" rel="noopener">NVIDIA – CUDA Toolkit</a></li>
+      <li><a href="https://developer.nvidia.com/cudnn" target="_blank" rel="noopener">NVIDIA – cuDNN</a></li>
+      <li><a href="https://developer.nvidia.com/tensorrt" target="_blank" rel="noopener">NVIDIA – TensorRT</a></li>
+      <li><a href="https://www.nvidia.com/en-us/data-center/products/ai-enterprise/" target="_blank" rel="noopener">NVIDIA – AI Enterprise</a></li>
+      <li><a href="https://www.nvidia.com/en-us/omniverse/" target="_blank" rel="noopener">NVIDIA – Omniverse</a></li>
+      <li><a href="https://developer.nvidia.com/isaac" target="_blank" rel="noopener">NVIDIA – Isaac</a></li>
+      <li><a href="https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/" target="_blank" rel="noopener">NVIDIA – Jetson</a></li>
+      <li><a href="https://aws.amazon.com/ai/machine-learning/trainium/" target="_blank" rel="noopener">AWS – Trainium</a></li>
+      <li><a href="https://aws.amazon.com/ec2/pricing/on-demand/" target="_blank" rel="noopener">AWS – Precios de EC2 bajo demanda</a></li>
+    </ul>
+  </div>
+</section>
+</main>
+
+<footer class="foot" id="aviso">
+  <div class="wrap">
+    <div class="foot-cols">
+      <div><h4>Bloques</h4><ul><li><a href="#negocio">Análisis de negocio</a></li><li><a href="#producto">Identificación del producto</a></li><li><a href="#tecnologia">Análisis tecnológico</a></li><li><a href="#futuro">Visión a 36 meses</a></li></ul></div>
+      <div><h4>Proyecto</h4><ul><li><a href="#equipo">Equipo</a></li><li><a href="#fuentes">Fuentes</a></li><li><a href="#inicio">Volver al inicio</a></li></ul></div>
+      <div class="foot-aviso"><h4>Aviso académico</h4>
+        <p>Trabajo final de la materia Amazon Web Services de la Universidad EAN (noviembre de 2026), hecho sin fines comerciales. El diseño toma como referencia de estudio el estilo visual de nvidia.com, pero este no es un sitio oficial: no usa logotipos ni fotografías de NVIDIA o de AWS, y no está afiliado ni respaldado por ninguna de las dos empresas.</p>
+        <p>NVIDIA, DGX, AWS, Amazon y los nombres de sus productos son marcas de sus respectivos dueños. Los datos vienen de las fuentes citadas en la sección Fuentes.</p>
+      </div>
+    </div>
+    <div class="foot-bottom"><b>Proyecto AWS · Universidad EAN</b><span>Trabajo académico · Bogotá, 2026</span></div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var NS='http://www.w3.org/2000/svg';
+  function rnd(seed){return function(){seed=(seed*9301+49297)%233280;return seed/233280;};}
+  // Ondas verdes en forma de túnel (al estilo de las imágenes de nvidia.com), dibujadas con arcos SVG
+  function tunnel(svg,w,h,o){
+    var r=rnd(o.seed),id='tg'+o.seed,cx=w*o.fx,cy=h*o.fy,frag=document.createDocumentFragment();
+    var defs=document.createElementNS(NS,'defs');
+    defs.innerHTML='<linearGradient id="'+id+'" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="'+w+'" y2="0">'+
+      '<stop offset="0" stop-color="#3b5c00"/><stop offset="'+(o.fx*0.6).toFixed(2)+'" stop-color="#76b900"/>'+
+      '<stop offset="'+o.fx.toFixed(2)+'" stop-color="#c2f55a"/><stop offset="1" stop-color="#76b900"/></linearGradient>'+
+      '<radialGradient id="'+id+'h" gradientUnits="userSpaceOnUse" cx="'+cx+'" cy="'+cy+'" r="'+(h*o.hole).toFixed(1)+'">'+
+      '<stop offset="0" stop-color="#000" stop-opacity=".95"/><stop offset=".55" stop-color="#000" stop-opacity=".65"/>'+
+      '<stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>';
+    frag.appendChild(defs);
+    for(var i=0;i<o.count;i++){
+      var e=Math.pow((i+0.6)/o.count,o.pow),ry=h*(o.ry0+e*o.spread),rx=w*(o.rx0+e*o.rxk);
+      for(var s=0;s<2;s++){
+        var p=document.createElementNS(NS,'path'),thick=r()<o.tp;
+        p.setAttribute('d','M'+(cx-rx).toFixed(1)+' '+cy.toFixed(1)+' A'+rx.toFixed(1)+' '+ry.toFixed(1)+' 0 0 '+(s?0:1)+' '+(cx+rx).toFixed(1)+' '+cy.toFixed(1));
+        p.setAttribute('fill','none');p.setAttribute('stroke','url(#'+id+')');
+        p.setAttribute('stroke-width',(o.sw*(thick?2.4:0.6)*(0.7+r()*0.6)*(0.5+e)).toFixed(2));
+        p.setAttribute('stroke-opacity',(thick?0.85+r()*0.15:0.4+r()*0.35).toFixed(2));
+        frag.appendChild(p);
+      }
+    }
+    var hole=document.createElementNS(NS,'rect');
+    hole.setAttribute('x','0');hole.setAttribute('y','0');hole.setAttribute('width',w);hole.setAttribute('height',h);
+    hole.setAttribute('fill','url(#'+id+'h)');
+    frag.appendChild(hole);
+    svg.appendChild(frag);
+  }
+  var hero=document.getElementById('heroWaves');
+  if(hero){var hg=document.createElementNS(NS,'g');hero.appendChild(hg);tunnel(hg,900,560,{seed:7,fx:.72,fy:.52,count:70,pow:1.15,ry0:.04,spread:1.2,rx0:.5,rxk:3.2,sw:2.6,hole:.38,tp:.7});}
+  // timeline: start the animation when it comes into view
+  var tl=document.getElementById('timeline');
+  if(tl){
+    if('IntersectionObserver' in window){
+      var tio=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){tl.classList.add('go');tio.disconnect();}});},{threshold:0.35});
+      tio.observe(tl);
+    } else { tl.classList.add('go'); }
+  }
+  var cws=document.querySelectorAll('svg.cw');
+  for(var j=0;j<cws.length;j++){
+    var s=+cws[j].getAttribute('data-seed');
+    tunnel(cws[j],400,225,{seed:s*13,fx:.5,fy:.55,count:34,pow:1.1,ry0:.1,spread:1.1,rx0:.3,rxk:2,sw:2,hole:.66,tp:.7});
+  }
+  // highlight current section in nav
+  var links=document.querySelectorAll('.nav li a'),ids=[];
+  for(var i=0;i<links.length;i++){ids.push(links[i].getAttribute('href').slice(1));}
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){for(var i=0;i<links.length;i++){links[i].classList.toggle('on',ids[i]===e.target.id);}}});},{rootMargin:'-40% 0px -55% 0px'});
+    ids.forEach(function(id){var el=document.getElementById(id);if(el)io.observe(el);});
+  }
+})();
+</script>
+</body>
+</html>
