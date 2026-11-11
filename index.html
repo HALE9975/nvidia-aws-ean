@@ -93,14 +93,15 @@ p{margin:0}
 .cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:28px}
 @media (max-width:1040px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:560px){.cards{grid-template-columns:1fr}}
-.card{background:var(--panel);display:flex;flex-direction:column;text-decoration:none;min-width:0;transition:transform .25s ease}
-.card:hover{transform:translateY(-4px)}
+.card{background:var(--panel);display:flex;flex-direction:column;text-decoration:none;min-width:0;outline:1px solid transparent;transition:outline-color .25s ease}
+.card:hover{outline-color:#3a3d35}
 .card:hover .go{text-decoration:underline;text-underline-offset:3px}
 .card .art{position:relative;aspect-ratio:16/9;max-width:100%;overflow:hidden;background:#050505}
 .card .art svg{position:absolute;inset:0;width:100%;height:100%}
-.card .body{padding:22px 20px 26px;display:flex;flex-direction:column;gap:12px;flex:1}
+.card .body{padding:24px 24px 28px;display:flex;flex-direction:column;gap:12px;flex:1}
 .card .k{font-family:var(--f-mono);font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
-.card h3{font-size:19px;font-weight:700}
+.card h3{font-size:19px;font-weight:700;line-height:1.25;min-height:2.5em}
+@media (max-width:560px){.card h3{min-height:0}}
 .card p{color:#d8dbd2;font-size:15px;line-height:1.6}
 .card .go{margin-top:auto;padding-top:8px;font-weight:600;font-size:15px;color:var(--green)}
 
@@ -204,17 +205,17 @@ td b{color:#fff}
 .flow ol{padding:0;margin:0}
 
 /* TIMELINE */
-.tl{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;padding-top:34px}
-.tl::before{content:"";position:absolute;left:0;right:0;top:10px;height:2px;background:#33362f}
-.tl .prog{position:absolute;left:0;right:0;top:10px;height:2px;background:linear-gradient(90deg,var(--green),#a6e22e);transform-origin:left center;transform:scaleX(0);transition:transform 2.4s cubic-bezier(.65,0,.35,1)}
+.tl{--edge:calc((100% - 60px) / 8);position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;padding-top:34px}
+.tl::before{content:"";position:absolute;left:var(--edge);right:var(--edge);top:10px;height:2px;background:#33362f}
+.tl .prog{position:absolute;left:var(--edge);right:var(--edge);top:10px;height:2px;background:linear-gradient(90deg,var(--green),#a6e22e);transform-origin:left center;transform:scaleX(0);transition:transform 2.4s cubic-bezier(.65,0,.35,1)}
 .tl.go .prog{transform:scaleX(1)}
 .tl .spark{position:absolute;top:5px;left:0;width:60px;height:12px;border-radius:50%;background:radial-gradient(closest-side,rgba(190,255,90,.95),rgba(118,185,0,0));opacity:0;pointer-events:none}
 .tl.go .spark{animation:spark 4.5s linear 2.6s infinite}
-@keyframes spark{0%{left:-60px;opacity:0}10%{opacity:1}90%{opacity:1}100%{left:100%;opacity:0}}
-.tl .st{position:relative;min-width:0;transition:transform .6s ease;transition-delay:calc(var(--i) * .55s + .2s)}
-.tl .st::before{content:"";position:absolute;top:-30px;left:0;width:14px;height:14px;border-radius:50%;background:var(--bg);border:3px solid #55594f;transition:border-color .4s ease,box-shadow .4s ease;transition-delay:inherit}
+@keyframes spark{0%{left:calc(var(--edge) - 30px);opacity:0}10%{opacity:1}90%{opacity:1}100%{left:calc(100% - var(--edge) - 30px);opacity:0}}
+.tl .st{position:relative;min-width:0;display:flex;flex-direction:column;align-items:center;text-align:center;transition-delay:calc(var(--i) * .55s + .2s)}
+.tl .st::before{content:"";position:absolute;top:-30px;left:calc(50% - 7px);width:14px;height:14px;border-radius:50%;background:var(--bg);border:3px solid #55594f;transition:border-color .4s ease,box-shadow .4s ease;transition-delay:inherit}
 .tl.go .st::before{border-color:var(--green);box-shadow:0 0 0 6px rgba(118,185,0,.16)}
-.tl .st::after{content:"";position:absolute;top:-30px;left:0;width:14px;height:14px;border-radius:50%;border:2px solid var(--green);opacity:0;pointer-events:none}
+.tl .st::after{content:"";position:absolute;top:-30px;left:calc(50% - 7px);width:14px;height:14px;border-radius:50%;border:2px solid var(--green);opacity:0;pointer-events:none}
 .tl.go .st::after{animation:ping 2.8s ease-out infinite;animation-delay:calc(var(--i) * .55s + .6s)}
 @keyframes ping{0%{transform:scale(1);opacity:.8}70%{transform:scale(2.8);opacity:0}100%{opacity:0}}
 .tl .when{transition:color .4s ease;transition-delay:inherit}
@@ -223,15 +224,15 @@ td b{color:#fff}
 .hero-art g{animation:drift 16s ease-in-out infinite;transform-box:fill-box}
 @keyframes drift{0%,100%{transform:translate(0,0)}50%{transform:translate(-18px,10px)}}
 .card .art svg.cw{transition:transform .6s ease}
-.card:hover .art svg.cw{transform:scale(1.08) translateX(-6px)}
+.card:hover .art svg.cw{transform:scale(1.05)}
 .tl .when{font-family:var(--f-mono);font-size:13px;color:var(--green)}
 .tl h4{font-size:19px;margin:6px 0 4px}
 .tl .phase{display:block;font-size:13px;color:var(--muted);margin-bottom:10px}
-.tl ul{margin:0;padding-left:18px;display:grid;gap:6px;font-size:15px;color:#d8dbd2}
+.tl ul{flex:1;align-self:stretch;margin:4px 0 0;padding:16px 18px 16px 34px;display:grid;align-content:start;gap:8px;font-size:15px;color:#d8dbd2;text-align:left;background:var(--panel);border-top:2px solid var(--line)}
 .badge{display:inline-block;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;margin-left:6px;vertical-align:2px;border:1px solid}
 .badge.f{border-color:var(--green);color:var(--green)}
 .badge.p{border-color:var(--warn);color:var(--warn)}
-@media (max-width:900px){.tl{grid-template-columns:1fr;padding-top:0;padding-left:30px}.tl::before,.tl .prog{left:6px;right:auto;top:0;bottom:0;width:2px;height:auto}.tl .prog{background:linear-gradient(180deg,var(--green),#a6e22e);transform-origin:center top;transform:scaleY(0)}.tl.go .prog{transform:scaleY(1)}.tl .spark{display:none}.tl .st::before,.tl .st::after{top:4px;left:-30px}}
+@media (max-width:900px){.tl{grid-template-columns:1fr;padding-top:0;padding-left:30px}.tl::before,.tl .prog{left:6px;right:auto;top:0;bottom:0;width:2px;height:auto}.tl .prog{background:linear-gradient(180deg,var(--green),#a6e22e);transform-origin:center top;transform:scaleY(0)}.tl.go .prog{transform:scaleY(1)}.tl .spark{display:none}.tl .st::before,.tl .st::after{top:4px;left:-30px}.tl .st{align-items:flex-start;text-align:left}}
 
 /* CALLOUT */
 .callout{border-left:3px solid var(--warn);background:#14110a;padding:22px 24px;margin-top:28px}
@@ -318,19 +319,19 @@ td b{color:#fff}
     <div class="sec-head"><h2 id="bloques-t">Los cuatro bloques</h2></div>
     <div class="cards">
       <a class="card" href="#negocio">
-        <div class="art" aria-hidden="true"><svg class="cw" data-seed="1" viewBox="0 0 400 225" preserveAspectRatio="xMidYMid slice"></svg><svg viewBox="0 0 400 225"><g transform="translate(110 52)"><rect x="0" y="92" width="26" height="30" fill="#55594f"/><rect x="40" y="76" width="26" height="46" fill="#55594f"/><rect x="80" y="54" width="26" height="68" fill="#7b8072"/><rect x="120" y="26" width="26" height="96" fill="#76b900"/><rect x="160" y="0" width="26" height="122" fill="#76b900"/><line x1="-8" y1="124" x2="196" y2="124" stroke="#cfd3c8" stroke-width="1.5"/></g></svg></div>
+        <div class="art" aria-hidden="true"><svg class="cw" data-seed="1" viewBox="0 0 400 225" preserveAspectRatio="xMidYMid slice"></svg><svg viewBox="0 0 400 225"><g fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="134" y="134" width="20" height="26" stroke="#8a8e83" fill="rgba(138,142,131,.18)"/><rect x="162" y="118" width="20" height="42" stroke="#8a8e83" fill="rgba(138,142,131,.18)"/><rect x="190" y="102" width="20" height="58" stroke="#8a8e83" fill="rgba(138,142,131,.18)"/><rect x="218" y="84" width="20" height="76" stroke="#76b900" fill="rgba(118,185,0,.25)"/><rect x="246" y="64" width="20" height="96" stroke="#76b900" fill="#76b900"/><path d="M122 162 H278" stroke="#e9ece4"/></g></svg></div>
         <div class="body"><span class="k">Bloque 1</span><h3>Análisis de negocio</h3><p>Contexto de NVIDIA, sus cifras más recientes y su posición frente a AMD y los chips propios de las nubes.</p><span class="go">Ver análisis →</span></div>
       </a>
       <a class="card" href="#producto">
-        <div class="art" aria-hidden="true"><svg class="cw" data-seed="2" viewBox="0 0 400 225" preserveAspectRatio="xMidYMid slice"></svg><svg viewBox="0 0 400 225"><g transform="translate(120 40)" fill="none" stroke-width="2"><path d="M30 70 a40 40 0 0 1 70-36 a32 32 0 0 1 60 18 a26 26 0 0 1-6 52 H36 a26 26 0 0 1-6-34z" stroke="#76b900" fill="rgba(118,185,0,.12)"/><rect x="58" y="74" width="72" height="12" stroke="#cfd3c8"/><rect x="58" y="92" width="72" height="12" stroke="#cfd3c8"/><line x1="94" y1="120" x2="94" y2="146" stroke="#cfd3c8"/><circle cx="94" cy="150" r="5" fill="#76b900" stroke="none"/></g></svg></div>
+        <div class="art" aria-hidden="true"><svg class="cw" data-seed="2" viewBox="0 0 400 225" preserveAspectRatio="xMidYMid slice"></svg><svg viewBox="0 0 400 225"><g fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M152 152 a26 26 0 0 1 0 -52 a36 36 0 0 1 66 -22 a40 40 0 0 1 30 74 z" stroke="#76b900" fill="rgba(118,185,0,.16)"/><rect x="168" y="104" width="64" height="14" rx="3" stroke="#e9ece4"/><rect x="168" y="126" width="64" height="14" rx="3" stroke="#e9ece4"/><circle cx="179" cy="111" r="1.5" stroke="#76b900"/><circle cx="179" cy="133" r="1.5" stroke="#76b900"/></g></svg></div>
         <div class="body"><span class="k">Bloque 2</span><h3>Identificación del producto</h3><p>NVIDIA DGX Cloud on AWS: la plataforma administrada para entrenar IA en clústeres de GPUs.</p><span class="go">Ver producto →</span></div>
       </a>
       <a class="card" href="#tecnologia">
-        <div class="art" aria-hidden="true"><svg class="cw" data-seed="3" viewBox="0 0 400 225" preserveAspectRatio="xMidYMid slice"></svg><svg viewBox="0 0 400 225"><g transform="translate(110 34)" stroke-width="2"><path d="M90 0 L180 30 L90 60 L0 30z" fill="rgba(118,185,0,.18)" stroke="#76b900"/><path d="M0 62 L90 92 L180 62" fill="none" stroke="#cfd3c8"/><path d="M0 94 L90 124 L180 94" fill="none" stroke="#8a8e83"/><path d="M0 126 L90 156 L180 126" fill="none" stroke="#55594f"/></g></svg></div>
+        <div class="art" aria-hidden="true"><svg class="cw" data-seed="3" viewBox="0 0 400 225" preserveAspectRatio="xMidYMid slice"></svg><svg viewBox="0 0 400 225"><g fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M130 82 L200 58 L270 82 L200 106 Z" stroke="#76b900" fill="rgba(118,185,0,.22)"/><path d="M130 108 L200 132 L270 108" stroke="#e9ece4"/><path d="M130 134 L200 158 L270 134" stroke="#8a8e83"/></g></svg></div>
         <div class="body"><span class="k">Bloque 3</span><h3>Análisis tecnológico</h3><p>La pila de NVIDIA (GPUs, redes y CUDA) y cómo se monta en AWS: EC2, EFA, EKS, S3, FSx y Nitro.</p><span class="go">Ver arquitectura →</span></div>
       </a>
       <a class="card" href="#futuro">
-        <div class="art" aria-hidden="true"><svg class="cw" data-seed="4" viewBox="0 0 400 225" preserveAspectRatio="xMidYMid slice"></svg><svg viewBox="0 0 400 225"><g transform="translate(80 60)"><line x1="0" y1="60" x2="240" y2="60" stroke="#55594f" stroke-width="2"/><circle cx="20" cy="60" r="8" fill="#000" stroke="#7b8072" stroke-width="3"/><circle cx="100" cy="60" r="8" fill="#000" stroke="#76b900" stroke-width="3"/><circle cx="180" cy="60" r="8" fill="#000" stroke="#76b900" stroke-width="3"/><path d="M226 46 L246 60 L226 74" fill="none" stroke="#76b900" stroke-width="3"/><g font-family="JetBrains Mono, monospace" font-size="13" fill="#cfd3c8" text-anchor="middle"><text x="20" y="96">2026</text><text x="100" y="96">2027</text><text x="180" y="96">2028</text></g></g></svg></div>
+        <div class="art" aria-hidden="true"><svg class="cw" data-seed="4" viewBox="0 0 400 225" preserveAspectRatio="xMidYMid slice"></svg><svg viewBox="0 0 400 225"><g fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M125 98 H275" stroke="#8a8e83"/><circle cx="125" cy="98" r="9" stroke="#76b900" fill="#76b900"/><circle cx="175" cy="98" r="9" stroke="#76b900" fill="#0b0b0b"/><circle cx="225" cy="98" r="9" stroke="#76b900" fill="#0b0b0b"/><circle cx="275" cy="98" r="9" stroke="#76b900" fill="#0b0b0b"/><g font-family="JetBrains Mono, monospace" font-size="13" fill="#e9ece4" stroke="none" text-anchor="middle"><text x="125" y="135">2026</text><text x="175" y="135">2027</text><text x="225" y="135">2028</text><text x="275" y="135">2029</text></g></g></svg></div>
         <div class="body"><span class="k">Bloque 4</span><h3>Visión a futuro</h3><p>Hacia dónde escala la alianza NVIDIA–AWS entre noviembre de 2026 y noviembre de 2029.</p><span class="go">Ver proyección →</span></div>
       </a>
     </div>
@@ -678,7 +679,7 @@ td b{color:#fff}
   var cws=document.querySelectorAll('svg.cw');
   for(var j=0;j<cws.length;j++){
     var s=+cws[j].getAttribute('data-seed');
-    tunnel(cws[j],400,225,{seed:s*13,fx:.5,fy:.55,count:34,pow:1.1,ry0:.1,spread:1.1,rx0:.3,rxk:2,sw:2,hole:.66,tp:.7});
+    tunnel(cws[j],400,225,{seed:s*13,fx:.5,fy:.5,count:22,pow:1.1,ry0:.12,spread:1.05,rx0:.45,rxk:2.2,sw:1.8,hole:.62,tp:.5});
   }
   // highlight current section in nav
   var links=document.querySelectorAll('.nav li a'),ids=[];
